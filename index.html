@@ -1,75 +1,134 @@
 <!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EPD — Espacio de Planificación Docente</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="app">
-    <aside class="sidebar">
-      <header class="sidebar-header">
-        <h1>EPD</h1>
-        <button id="newProjectBtn" class="btn primary">Nuevo proyecto</button>
-      </header>
-      <ul id="projectsList" class="projects-list" aria-label="Proyectos"></ul>
-      <footer class="sidebar-footer">
-        <small>V0 — MVP • Sin backend • localStorage</small>
-      </footer>
-    </aside>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EPD V1</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-row">
+          <div class="brand-mark">EPD</div>
+          <div class="brand-text">Espacio docente</div>
+        </div>
 
-    <main class="main">
-      <div class="main-header">
-        <div id="projectTitle" class="project-title">Selecciona o crea un proyecto</div>
-        <div class="main-actions">
-          <button id="addActivityBtn" class="btn" disabled>Añadir actividad</button>
-          <select id="viewSelect" aria-label="Vista">
-            <option value="list">Lista (cronológica)</option>
-            <option value="week">Vista semanal</option>
-          </select>
+        <div class="section-block">
+          <div class="section-title">Secuencias didácticas</div>
+          <button id="newSequenceBtn" class="action-btn secondary">+ Nueva secuencia</button>
+          <div id="sequenceList" class="sequence-list"></div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Copiloto</div>
+          <button id="copilotSectionBtn" class="action-btn ghost">Abrir copiloto</button>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="canvas-header">
+          <div class="sequence-meta">
+            <div id="selectedSequenceName" class="sequence-name">Sin secuencia</div>
+          </div>
+          <div class="canvas-tools">
+            <button id="addActivityBtn" class="chip chip-celeste">+ Actividad</button>
+            <button id="addResourceBtn" class="chip chip-verde">+ Recurso</button>
+          </div>
+        </header>
+
+        <section id="sequenceCanvas" class="sequence-canvas">
+          <svg id="connectionsLayer" class="connections-layer"></svg>
+          <div id="nodeLayer" class="node-layer"></div>
+        </section>
+      </main>
+
+      <aside class="copilot-panel hidden" id="copilotPanel">
+        <div class="copilot-header">
+          <div class="copilot-title">Copiloto</div>
+          <button id="closeCopilotBtn" class="close-btn">×</button>
+        </div>
+
+        <div class="copilot-thread">
+          <div class="message welcome">Hola, ¿en qué te puedo ayudar?</div>
+        </div>
+
+        <div class="copilot-input-wrap">
+          <textarea id="copilotInput" rows="2" placeholder="Escribe tu solicitud..."></textarea>
+          <button id="sendCopilotBtn" class="send-btn">Enviar</button>
+        </div>
+      </aside>
+    </div>
+
+    <div id="activityModal" class="modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Editar actividad</h3>
+          <button class="close-btn modal-close" data-close="activityModal">×</button>
+        </div>
+        <div class="field">
+          <label>Título</label>
+          <input id="activityTitleInput" type="text" placeholder="Título de la actividad" />
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <textarea id="activityDescriptionInput" rows="4" placeholder="Describe la actividad..."></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Fecha</label>
+            <input id="activityDateInput" type="date" />
+          </div>
+          <div class="field">
+            <label>Duración (min)</label>
+            <input id="activityDurationInput" type="number" min="0" value="45" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Recursos / enlaces</label>
+          <input id="activityResourcesInput" type="text" placeholder="https://... , libro, video" />
+        </div>
+        <div class="modal-actions">
+          <button id="saveActivityBtn" class="action-btn primary">Guardar</button>
+          <button class="action-btn ghost modal-close" data-close="activityModal">Cancelar</button>
         </div>
       </div>
+    </div>
 
-      <section id="contentArea" class="content">
-        <div id="emptyState" class="empty">Crea un proyecto y añade actividades para comenzar a planificar.</div>
-        <div id="listView" class="view list-view hidden"></div>
-        <div id="weekView" class="view week-view hidden"></div>
-      </section>
-    </main>
-  </div>
-
-  <!-- Project modal -->
-  <div id="projectModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-content">
-      <h2>Nuevo proyecto</h2>
-      <label>
-        Nombre
-        <input id="projectNameInput" type="text" placeholder="Nombre del proyecto (unidad)" />
-      </label>
-      <div class="modal-actions">
-        <button id="createProjectConfirm" class="btn primary">Crear</button>
-        <button id="createProjectCancel" class="btn">Cancelar</button>
+    <div id="resourceModal" class="modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Editar recurso</h3>
+          <button class="close-btn modal-close" data-close="resourceModal">×</button>
+        </div>
+        <div class="field">
+          <label>Tipo</label>
+          <select id="resourceTypeInput">
+            <option value="article">Artículo</option>
+            <option value="video">Video</option>
+            <option value="image">Imagen</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nombre</label>
+          <input id="resourceTitleInput" type="text" placeholder="Título del recurso" />
+        </div>
+        <div class="field">
+          <label>URL o enlace</label>
+          <input id="resourceUrlInput" type="text" placeholder="https://..." />
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <textarea id="resourceDescriptionInput" rows="3" placeholder="Comentario breve..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button id="saveResourceBtn" class="action-btn primary">Guardar</button>
+          <button class="action-btn ghost modal-close" data-close="resourceModal">Cancelar</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Activity modal -->
-  <div id="activityModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-content">
-      <h2 id="activityModalTitle">Añadir actividad</h2>
-      <label> Título <input id="actTitle" type="text" /></label>
-      <label> Descripción <textarea id="actDesc" rows="3"></textarea></label>
-      <label> Fecha prevista <input id="actDate" type="date" /></label>
-      <label> Duración (min) <input id="actDuration" type="number" min="0" /></label>
-      <label> Recursos (separados por comas) <input id="actResources" type="text" placeholder="https://... , recurso local" /></label>
-      <div class="modal-actions">
-        <button id="saveActivityBtn" class="btn primary">Guardar</button>
-        <button id="cancelActivityBtn" class="btn">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
+
