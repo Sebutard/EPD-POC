@@ -156,6 +156,18 @@ function renderSequenceCanvas() {
   els.nodeLayer.innerHTML = '';
   els.connectionsLayer.innerHTML = '';
 
+  // Make sure SVG canvas matches nodeLayer size to keep curves accurate and unclipped
+  try {
+    const svg = els.connectionsLayer;
+    const w = Math.max(els.nodeLayer.scrollWidth, els.nodeLayer.offsetWidth, 1200);
+    const h = Math.max(els.nodeLayer.scrollHeight, els.nodeLayer.offsetHeight, 800);
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  } catch (e) {
+    // ignore
+  }
+
   const connections = sequence.connections || [];
 
   connections.forEach((c) => {
@@ -164,20 +176,29 @@ function renderSequenceCanvas() {
     if (!fromNode || !toNode) return;
 
     const svgLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    // center points of nodes (approx)
     const x1 = fromNode.x + 110;
     const y1 = fromNode.y + 60;
     const x2 = toNode.x + 110;
     const y2 = toNode.y + 60;
-    const cx1 = x1 + 40;
-    const cy1 = y1;
-    const cx2 = x2 - 40;
-    const cy2 = y2;
-    svgLine.setAttribute('d', `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`);
-    svgLine.setAttribute('stroke', '#66d4ff');
+
+    // smoother curve: control points depend on horizontal distance
+    const dx = x2 - x1;
+    const curve = Math.max(80, Math.abs(dx) * 0.4); // at least 80px, otherwise proportional
+    const cx1 = x1 + (dx > 0 ? curve : -curve);
+    const cx2 = x2 - (dx > 0 ? curve : -curve);
+
+    const d = `M ${x1} ${y1} C ${cx1} ${y1}, ${cx2} ${y2}, ${x2} ${y2}`;
+    svgLine.setAttribute('d', d);
+    svgLine.setAttribute('stroke', '#6aaed6');
     svgLine.setAttribute('stroke-width', '3');
     svgLine.setAttribute('fill', 'none');
-    svgLine.setAttribute('opacity', '0.9');
+    svgLine.setAttribute('opacity', '0.98');
     svgLine.setAttribute('stroke-linecap', 'round');
+    svgLine.setAttribute('stroke-linejoin', 'round');
+    // subtle glow for clarity on very light background
+    svgLine.style.filter = 'drop-shadow(0px 4px 8px rgba(106,174,214,0.06))';
+
     els.connectionsLayer.appendChild(svgLine);
   });
 
@@ -217,7 +238,7 @@ function renderSequenceCanvas() {
       e.stopPropagation();
       isConnectionMode = true;
       connectSourceId = node.id;
-      connectBtn.style.background = 'rgba(0,0,0,0.12)';
+      connectBtn.style.background = 'rgba(0,0,0,0.06)';
     });
 
     const del = document.createElement('button');
@@ -281,11 +302,14 @@ function renderSequenceCanvas() {
     let drag = null;
     const startDrag = (event) => {
       if (event.target.closest('button')) return;
+      // pointer events may be touch or mouse
       drag = {
         nodeId: node.id,
         offsetX: event.clientX - node.x,
         offsetY: event.clientY - node.y
       };
+      // capture pointer to ensure we receive pointermove/up
+      event.target.setPointerCapture && event.target.setPointerCapture(event.pointerId);
     };
 
     el.addEventListener('pointerdown', startDrag);
@@ -295,12 +319,13 @@ function renderSequenceCanvas() {
       const targetNode = sequence.nodes.find((n) => n.id === node.id);
       if (!targetNode) return;
       const rect = els.sequenceCanvas.getBoundingClientRect();
-      targetNode.x = Math.max(20, event.clientX - rect.left - drag.offsetX);
-      targetNode.y = Math.max(20, event.clientY - rect.top - drag.offsetY);
+      targetNode.x = Math.max(20, event.clientX - rect.left - drag.offsetX + els.sequenceCanvas.scrollLeft);
+      targetNode.y = Math.max(20, event.clientY - rect.top - drag.offsetY + els.sequenceCanvas.scrollTop);
+      // redraw while dragging for instant feedback
       renderSequenceCanvas();
       saveSequences();
     });
-    el.addEventListener('pointerup', () => { drag = null; });
+    el.addEventListener('pointerup', (ev) => { drag = null; });
     el.addEventListener('pointerleave', () => { drag = null; });
 
     els.nodeLayer.appendChild(el);
@@ -346,8 +371,8 @@ function addNode(type) {
   const node = {
     id: uid(type === 'activity' ? 'activity' : 'resource'),
     type,
-    x: 180 + (sequence.nodes.length * 40) % 200,
-    y: 120 + (sequence.nodes.length * 35) % 180,
+    x: 180 + (sequence.nodes.length * 40) % 400,
+    y: 120 + (sequence.nodes.length * 35) % 300,
     children: [],
     title: type === 'activity' ? 'Nueva actividad' : 'Nuevo recurso',
     description: type === 'activity' ? 'Describa la actividad...' : 'Describa el recurso...',
