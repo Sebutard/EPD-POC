@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EPD — Espacio de Planificación Docente</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <header class="sidebar-header">
+        <h1>EPD</h1>
+        <button id="newProjectBtn" class="btn primary">Nuevo proyecto</button>
+      </header>
+      <ul id="projectsList" class="projects-list" aria-label="Proyectos"></ul>
+      <footer class="sidebar-footer">
+        <small>V0 — MVP • Sin backend • localStorage</small>
+      </footer>
+    </aside>
+
+    <main class="main">
+      <div class="main-header">
+        <div id="projectTitle" class="project-title">Selecciona o crea un proyecto</div>
+        <div class="main-actions">
+          <button id="addActivityBtn" class="btn" disabled>Añadir actividad</button>
+          <select id="viewSelect" aria-label="Vista">
+            <option value="list">Lista (cronológica)</option>
+            <option value="week">Vista semanal</option>
+          </select>
+        </div>
+      </div>
+
+      <section id="contentArea" class="content">
+        <div id="emptyState" class="empty">Crea un proyecto y añade actividades para comenzar a planificar.</div>
+        <div id="listView" class="view list-view hidden"></div>
+        <div id="weekView" class="view week-view hidden"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Project modal -->
+  <div id="projectModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <h2>Nuevo proyecto</h2>
+      <label>
+        Nombre
+        <input id="projectNameInput" type="text" placeholder="Nombre del proyecto (unidad)" />
+      </label>
+      <div class="modal-actions">
+        <button id="createProjectConfirm" class="btn primary">Crear</button>
+        <button id="createProjectCancel" class="btn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity modal -->
+  <div id="activityModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <h2 id="activityModalTitle">Añadir actividad</h2>
+      <label> Título <input id="actTitle" type="text" /></label>
+      <label> Descripción <textarea id="actDesc" rows="3"></textarea></label>
+      <label> Fecha prevista <input id="actDate" type="date" /></label>
+      <label> Duración (min) <input id="actDuration" type="number" min="0" /></label>
+      <label> Recursos (separados por comas) <input id="actResources" type="text" placeholder="https://... , recurso local" /></label>
+      <div class="modal-actions">
+        <button id="saveActivityBtn" class="btn primary">Guardar</button>
+        <button id="cancelActivityBtn" class="btn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
