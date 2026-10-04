@@ -44,14 +44,19 @@ button { cursor: pointer; }
 .section-block{ display:flex; flex-direction:column; gap:10px }
 .section-title{ font-size:0.9rem; color: #9aa6b4; font-weight:700 }
 
-.action-btn { border:0; border-radius:12px; padding:10px 12px; font-weight:700 }
-.action-btn.secondary { background:#eaf3fb; color:#0d2330 }
-.action-btn.ghost { background: rgba(255,255,255,0.03); color: #dbe8f2; border: 1px solid rgba(255,255,255,0.03) }
+.action-btn { border:0; border-radius:12px; padding:10px 12px; font-weight:700; transition: all 0.2s ease; }
+.action-btn.secondary { background:#5fa3d4; color:#ffffff; }
+.action-btn.secondary:hover { background:#4a8cbd; }
+.action-btn.ghost { background: rgba(255,255,255,0.08); color: #dbe8f2; border: 1px solid rgba(255,255,255,0.12); }
+.action-btn.ghost:hover { background: rgba(255,255,255,0.12); }
 
 .sequence-list { display:flex; flex-direction:column; gap:8px; margin-top:12px; }
-.sequence-item{ display:flex; align-items:center; justify-content:space-between; gap:6px; background: rgba(255,255,255,0.02); border-radius:12px; padding:10px }
-.sequence-item .name{ font-weight:600; color: #dfeaf6 }
-.sequence-item.active{ background: linear-gradient(90deg, rgba(218,235,255,0.14), rgba(238,246,255,0.08)); border: 1px solid rgba(34, 112, 203, 0.08) }
+.sequence-item{ display:flex; align-items:center; justify-content:space-between; gap:6px; background: rgba(255,255,255,0.05); border-radius:12px; padding:10px; cursor: pointer; transition: all 0.2s ease; }
+.sequence-item:hover { background: rgba(255,255,255,0.08); }
+.sequence-item .name{ font-weight:600; color: #b4c3d6; border: 0; background: none; cursor: pointer; }
+.sequence-item .name:hover { color: #d6e5f2; }
+.sequence-item.active{ background: linear-gradient(90deg, rgba(95, 163, 212, 0.25), rgba(95, 163, 212, 0.15)); border: 1px solid rgba(95, 163, 212, 0.3); }
+.sequence-item.active .name { color: #ffffff; font-weight: 700; }
 .sequence-item .tiny{ color: var(--muted) }
 
 /* Main panel: light canvas like GitHub Copilot */
@@ -59,9 +64,11 @@ button { cursor: pointer; }
 .canvas-header{ display:flex; justify-content:space-between; align-items:center; padding:18px; border-bottom:1px solid var(--line); background: linear-gradient(180deg, rgba(250,251,252,0.6), var(--main-bg)); }
 .sequence-name{ font-size:1.05rem; font-weight:800; color:var(--text) }
 .canvas-tools{ display:flex; gap:10px }
-.chip{ border:0; border-radius:12px; padding:10px 14px; font-weight:700 }
-.chip-celeste{ background: #e6f4ff; color: #042033 }
-.chip-verde{ background: #e7fbeb; color: #064234 }
+.chip{ border:0; border-radius:12px; padding:10px 14px; font-weight:700; cursor: pointer; transition: all 0.2s ease; }
+.chip-celeste{ background: #e6f4ff; color: #042033; }
+.chip-celeste:hover { background: #b3e0ff; }
+.chip-verde{ background: #e7fbeb; color: #064234; }
+.chip-verde:hover { background: #a7f5c5; }
 
 /* Sequence canvas: ensure it's scrollable and roomy (fix cut-off) */
 .sequence-canvas {
@@ -72,6 +79,10 @@ button { cursor: pointer; }
   background: repeating-linear-gradient(0deg, transparent 0 24px, rgba(0,0,0,0.02) 24px 25px), radial-gradient(circle at 1px 1px, rgba(0,0,0,0.02) 1px, transparent 1px) 0 0 / 24px 24px, var(--main-bg);
 }
 
+.sequence-canvas.connection-mode {
+  cursor: crosshair;
+}
+
 .connections-layer, .node-layer { position: absolute; left: 0; top: 0; }
 .connections-layer { z-index: 0; pointer-events: none; }
 .node-layer { z-index: 2; }
@@ -80,15 +91,19 @@ button { cursor: pointer; }
 .node-layer { min-width: 2200px; min-height: 1600px; }
 .connections-layer svg { width: 100%; height: 100%; }
 
-.node { position: absolute; min-width: 240px; min-height: 110px; border-radius:14px; padding:14px 12px; user-select:none; box-shadow: 0 18px 30px var(--shadow); border:1px solid rgba(15,23,42,0.06); }
+.node { position: absolute; min-width: 240px; min-height: 110px; border-radius:14px; padding:14px 12px; user-select:none; box-shadow: 0 18px 30px var(--shadow); border:1px solid rgba(15,23,42,0.06); cursor: grab; transition: all 0.15s ease; }
+.node:hover { box-shadow: 0 24px 36px rgba(0,0,0,0.15); }
+.node.connection-target { 
+  box-shadow: inset 0 0 0 2px #5fa3d4, 0 18px 30px var(--shadow);
+}
 
 /* Activity nodes: light celeste with dark text */
 .node.activity { background: linear-gradient(180deg, #eaf7ff, #d9eefb); color: #062033 }
-.node.activity .node-icon { background: rgba(6,32,51,0.08); color: #0e3b53 }
+.node.activity .node-icon { background: rgba(6,32,51,0.12); color: #0e3b53; }
 
 /* Resource nodes: light green */
 .node.resource { background: linear-gradient(180deg, #f0fff3, #e2f7e6); color: #063423 }
-.node.resource .node-icon { background: rgba(6,48,30,0.06); color: #074b30 }
+.node.resource .node-icon { background: rgba(6,48,30,0.1); color: #074b30; }
 
 .node-head{ display:flex; justify-content:space-between; gap:8px; align-items:center; margin-bottom:8px }
 .node-icon{ width:34px; height:34px; border-radius:8px; display:grid; place-items:center; font-weight:800; font-size:16px }
@@ -96,7 +111,9 @@ button { cursor: pointer; }
 .node-content{ font-size:0.9rem; line-height:1.4; opacity:0.95 }
 .node-footer{ margin-top:10px; font-size:0.8rem; display:flex; justify-content:space-between; color:var(--muted) }
 .node-actions{ position:absolute; right:8px; top:8px; display:flex; gap:6px }
-.node-actions button{ border:0; background: rgba(0,0,0,0.06); color: inherit; border-radius:8px; width:28px; height:28px }
+.node-actions button{ border:0; background: rgba(0,0,0,0.06); color: inherit; border-radius:8px; width:28px; height:28px; cursor: pointer; transition: all 0.15s ease; }
+.node-actions button:hover { background: rgba(0,0,0,0.12); }
+.node-actions button.active-connect { background: #5fa3d4; color: white; }
 
 /* Improve connection line styling for light background */
 .connections-layer path { stroke: #6aaed6; stroke-width: 3; fill: none; opacity: 0.95; stroke-linecap: round; stroke-linejoin: round; }
@@ -109,11 +126,24 @@ button { cursor: pointer; }
 .message { max-width:86%; background: #ffffff; border:1px solid var(--line); border-radius:12px; padding:10px 12px; color:var(--text) }
 .message.user { align-self:flex-end; background: #e6f4ff }
 .copilot-input-wrap{ padding:12px; border-top:1px solid var(--line) }
-.copilot-input-wrap textarea{ width:100%; border-radius:10px; padding:10px }
-.send-btn{ background:#0b6f3a; color:white; padding:8px 12px; border-radius:8px; border:0; }
+.copilot-input-wrap textarea{ width:100%; border-radius:10px; padding:10px; border: 1px solid var(--line); }
+.send-btn{ background:#0b6f3a; color:white; padding:8px 12px; border-radius:8px; border:0; cursor: pointer; }
+.send-btn:hover { background: #084f2a; }
 
 /* Modal (light) */
-.modal-card { background: #ffffff; color: var(--text); }
-.field input, .field textarea, .field select { background:#ffffff; color:var(--text) }
+.modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.modal.hidden { display: none; }
+.modal-card { background: #ffffff; color: var(--text); border-radius: 14px; padding: 20px; max-width: 500px; box-shadow: 0 24px 48px rgba(0,0,0,0.2); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-header h3 { margin: 0; font-weight: 800; }
+.close-btn { border: 0; background: none; font-size: 24px; cursor: pointer; color: var(--text); }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+.field input, .field textarea, .field select { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: #ffffff; color: var(--text); }
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.action-btn.primary { background: #5fa3d4; color: white; flex: 1; }
+.action-btn.primary:hover { background: #4a8cbd; }
 
 @media (max-width: 980px) { .app-shell { grid-template-columns: 260px 1fr } .copilot-panel { position:absolute; right:0; top:0; width:min(360px,90vw); height:100%; z-index:20 } }
